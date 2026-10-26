@@ -116,11 +116,16 @@ export function openDb(dbPath: string): Database.Database {
   const db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
+  // FIX: pehle migrations chalao, phir meta check karo. Pehle code fresh/empty
+  // DB par meta SELECT kar raha tha jab table bani hi nahi thi, is liye
+  // "no such table: meta" error aa kar app pehli dafa hi crash ho jata tha.
+  // Migrations me sab CREATE TABLE IF NOT EXISTS hai, is liye dobara chalna safe hai.
+  db.exec(MIGRATIONS[0]);
   const cur = (db.prepare("SELECT value FROM meta WHERE key='schema_version'").get() as any)?.value;
   if (!cur) {
-    db.exec(MIGRATIONS[0]);
-    db.prepare("INSERT INTO meta(key,value) VALUES('schema_version',?)").run(String(SCHEMA_VERSION));
-    seed(db);
+    const userCount = (db.prepare('SELECT COUNT(*) AS c FROM users').get() as any)?.c ?? 0;
+    if (userCount === 0) seed(db);
+    db.prepare("INSERT OR REPLACE INTO meta(key,value) VALUES('schema_version',?)").run(String(SCHEMA_VERSION));
   }
   return db;
 }
