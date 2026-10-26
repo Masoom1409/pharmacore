@@ -15,7 +15,7 @@ function createWindow() {
     autoHideMenuBar: true,
   });
   if (process.env.VITE_DEV_SERVER_URL) win.loadURL(process.env.VITE_DEV_SERVER_URL);
-  else win.loadFile(path.join(__dirname, '../dist/index.html'));
+  else win.loadFile(path.join(__dirname, '../../dist/index.html'));
 }
 app.whenReady().then(() => {
   try { svc = createServices(openDb(dbPath)); } catch (e) { dialog.showErrorBox('Database error', String(e)); app.quit(); return; }
